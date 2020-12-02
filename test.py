@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from __future__ import division
 import os
 import glob
 import sys
 #import csv
-from collections import Counter
-from collections import OrderedDict
 from local_align import *
 
 # added by Junli Zhang on 11/30/2019
@@ -103,54 +100,56 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
             countList.append(R1R2[k])
     # now check the indels
     indelPosList = []
-    algnList = [] # alignment of r1 and r2
+    # algnList = [] # alignment of r1 and r2
     algnList2 = [] # alignment of wt and r1, wt and r2
     for i in range(len(seqList)):
+        if countList[i] * 100 / nreads < 10:
+            break
         (r1, r2) = seqList[i]
         # check whether there is overlap between R1 and R2
-        a, b = local_align(r1, r2, ScoreParam(3, -3, -6))
-        algnList.append((a,b))
-        if a and ("-" not in a and "-" not in b): # overlap
-            print(i, a)
-            p1 = r1.find(a)
-            p2 = r2.find(b)
-            merged = r1[0:p1] + r2[(p2+len(b)):]
-            c, d = local_align(wtSeq, merged, ScoreParam(3, -3, -5))
-            if "-" in c: # indel
-                xx = c.find("-")
-                indelPos = wtSeq.find(c[:xx]) + xx
-            elif "-" in d: # indel
-                xx = d.find("-")
-                indelPos = wtSeq.find(c[:xx]) + xx
-            else:
-                indelPos = -1
-            indelPosList.append(indelPos)
-            algnList2.append((c,d))
-        else: # no overlap, need to check r1 and r2 separately
-            # r1 first
-            c, d = local_align(wtSeq, r1, ScoreParam(3, -3, -5))
-            if "-" in c: # indel
-                xx = c.find("-")
-                indelPos1 = wtSeq.find(c[:xx]) + xx
-            elif "-" in d: # indel
-                xx = d.find("-")
-                indelPos1 = wtSeq.find(c[:xx]) + xx
-            else:
-                indelPos1 = -1
-            # r2
-            e, f = local_align(wtSeq, r2, ScoreParam(3, -3, -5))
-            if "-" in e: # indel
-                xx = e.find("-")
-                indelPos2 = wtSeq.find(e[:xx]) + xx
-            elif "-" in f: # indel
-                xx = f.find("-")
-                indelPos2 = wtSeq.find(e[:xx]) + xx
-            else:
-                indelPos2 = -1
-            indelPosList.append((indelPos1, indelPos2))
-            algnList2.append((c,d,e,f))
+        # a, b = local_align(r1, r2, ScoreParam(3, -3, -6))
+        # algnList.append((a,b))
+        # if a and ("-" not in a and "-" not in b): # overlap
+        #     print(i, a)
+        #     p1 = r1.find(a)
+        #     p2 = r2.find(b)
+        #     merged = r1[0:p1] + r2[(p2+len(b)):]
+        #     c, d = local_align(wtSeq, merged, ScoreParam(3, -3, -5))
+        #     if "-" in c: # indel
+        #         xx = c.find("-")
+        #         indelPos = wtSeq.find(c[:xx]) + xx
+        #     elif "-" in d: # indel
+        #         xx = d.find("-")
+        #         indelPos = wtSeq.find(c[:xx]) + xx
+        #     else:
+        #         indelPos = -1
+        #     indelPosList.append(indelPos)
+        #     algnList2.append((c,d))
+        # else: # no overlap, need to check r1 and r2 separately
+        # r1 first
+        c, d = local_align(wtSeq, r1, ScoreParam(3, -3, -5))
+        if "-" in c: # indel
+            xx = c.find("-")
+            indelPos1 = wtSeq.find(c[:xx]) + xx
+        elif "-" in d: # indel
+            xx = d.find("-")
+            indelPos1 = wtSeq.find(c[:xx]) + xx
+        else:
+            indelPos1 = -1
+        # r2
+        e, f = local_align(wtSeq, r2, ScoreParam(3, -3, -5))
+        if "-" in e: # indel
+            xx = e.find("-")
+            indelPos2 = wtSeq.find(e[:xx]) + xx
+        elif "-" in f: # indel
+            xx = f.find("-")
+            indelPos2 = wtSeq.find(e[:xx]) + xx
+        else:
+            indelPos2 = -1
+        indelPosList.append((indelPos1, indelPos2))
+        algnList2.append((c,d,e,f))
 
-    return [nreads, seqList, algnList, algnList2, countList, indelPosList]
+    return [nreads, seqList, algnList2, countList, indelPosList]
 
 
 
@@ -160,10 +159,10 @@ def main():
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
     prefix = "3_"
-    nread, seqList, algnList, algnList2, countList, indelPosList = checkFastq(prefix, ref_seq)
+    nread, seqList, algnList2, countList, indelPosList = checkFastq(prefix, ref_seq)
     print("Total reads is ", nread)
-    for i in range(len(seqList)):
-        print(seqList[i], algnList[i], algnList2[i], countList[i], indelPosList[i])
+    for i in range(len(algnList2)):
+        print(seqList[i], algnList2[i], countList[i], indelPosList[i])
 
 if __name__ == "__main__":
     main()
