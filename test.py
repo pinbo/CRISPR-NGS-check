@@ -5,7 +5,7 @@ import os
 import glob
 import sys
 #import csv
-from local_align import *
+from local_align import local_align, ScoreParam
 
 # added by Junli Zhang on 11/30/2019
 # function to extract sequences from a fasta file
@@ -75,6 +75,8 @@ def checkSNP(seq1,seq2):
 
 # check PE fastq
 def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited template 
+    leftseq = wtSeq[:30]
+    rightseq = wtSeq[-30:]
     file1= glob.glob(prefix + "*R1*")[0]
     file2 = glob.glob(prefix + "*R2*")[0]
     print("files are ", file1, file2)
@@ -110,10 +112,15 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     indelPosList = []
     algnList = [] # alignment of r1 and r2
     algnList2 = [] # alignment of wt and r1, wt and r2
+    indexList = [] # list of index in seqList used
     for i in range(len(seqList)):
         # if countList[i] * 100 / nreads < 5:
         #     break
         (r1, r2) = seqList[i]
+        if leftseq not in r1 or rightseq not in r2:
+            continue
+        # add i to index list
+        indexList.append(i)
         # check whether there is overlap between R1 and R2
         a, b = local_align(r1, r2, ScoreParam(3, -4, -5))
         algnList.append((a,b))
@@ -157,7 +164,7 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
             indelPosList.append((indelPos1, indelPos2))
             algnList2.append((c,d,e,f))
 
-    return [nreads, seqList, algnList, algnList2, countList, indelPosList]
+    return [nreads, seqList, algnList, algnList2, countList, indelPosList, indexList]
 
 
 
@@ -167,10 +174,12 @@ def main():
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
     prefix = sys.argv[3]
-    nread, seqList, algnList, algnList2, countList, indelPosList = checkFastq(prefix, ref_seq)
+    nread, seqList, algnList, algnList2, countList, indelPosList, indexList = checkFastq(prefix, ref_seq)
     print("Total reads is ", nread)
+    print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
+    print("PE reads\talignment between R1 and R2\talignment between WT and R1, WT and R2, or WT and merged\tNumber of reads\tIndel position in R1 and R2")
     for i in range(len(algnList2)):
-        print(seqList[i], algnList[i], algnList2[i], countList[i], indelPosList[i])
+        print(seqList[indexList[i]], algnList[i], algnList2[i], countList[indexList[i]], indelPosList[i], sep='\t')
 
 if __name__ == "__main__":
     main()
