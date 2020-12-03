@@ -111,7 +111,8 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     # now check the indels
     indelPosList = []
     algnList = [] # alignment of r1 and r2
-    algnList2 = [] # alignment of wt and r1, wt and r2
+    algnList1 = [] # alignment of wt and r1
+    algnList2 = [] # alignment of wt and r2
     indexList = [] # list of index in seqList used
     for i in range(len(seqList)):
         # if countList[i] * 100 / nreads < 5:
@@ -124,47 +125,48 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
         # check whether there is overlap between R1 and R2
         a, b = local_align(r1, r2, ScoreParam(3, -4, -5))
         algnList.append((a,b))
-        if a and ("-" not in a and "-" not in b): # overlap
-            # print(i, a)
-            p1 = r1.find(a)
-            p2 = r2.find(b)
-            merged = r1[0:p1] + r2[(p2+len(b)):]
-            c, d = local_align(wtSeq, merged, ScoreParam(3, -4, -5))
-            if "-" in c: # indel
-                xx = c.find("-")
-                indelPos = wtSeq.find(c[:xx]) + xx
-            elif "-" in d: # indel
-                xx = d.find("-")
-                indelPos = wtSeq.find(c[:xx]) + xx
-            else:
-                indelPos = -1
-            indelPosList.append(indelPos)
-            algnList2.append((c,d))
-        else: # no overlap, need to check r1 and r2 separately
-            # r1 first
-            c, d = local_align(wtSeq, r1, ScoreParam(3, -4, -5))
-            if "-" in c: # indel
-                xx = c.find("-")
-                indelPos1 = wtSeq.find(c[:xx]) + xx
-            elif "-" in d: # indel
-                xx = d.find("-")
-                indelPos1 = wtSeq.find(c[:xx]) + xx
-            else:
-                indelPos1 = -1
-            # r2
-            e, f = local_align(wtSeq, r2, ScoreParam(3, -4, -5))
-            if "-" in e: # indel
-                xx = e.find("-")
-                indelPos2 = wtSeq.find(e[:xx]) + xx
-            elif "-" in f: # indel
-                xx = f.find("-")
-                indelPos2 = wtSeq.find(e[:xx]) + xx
-            else:
-                indelPos2 = -1
-            indelPosList.append((indelPos1, indelPos2))
-            algnList2.append((c,d,e,f))
+        # if a and ("-" not in a and "-" not in b): # overlap
+        #     # print(i, a)
+        #     p1 = r1.find(a)
+        #     p2 = r2.find(b)
+        #     merged = r1[0:p1] + r2[(p2+len(b)):]
+        #     c, d = local_align(wtSeq, merged, ScoreParam(3, -4, -5))
+        #     if "-" in c: # indel
+        #         xx = c.find("-")
+        #         indelPos = wtSeq.find(c[:xx]) + xx
+        #     elif "-" in d: # indel
+        #         xx = d.find("-")
+        #         indelPos = wtSeq.find(c[:xx]) + xx
+        #     else:
+        #         indelPos = -1
+        #     indelPosList.append(indelPos)
+        #     algnList2.append((c,d))
+        # else: # no overlap, need to check r1 and r2 separately
+        # r1 first
+        c, d = local_align(wtSeq, r1, ScoreParam(3, -4, -5))
+        if "-" in c: # indel
+            xx = c.find("-")
+            indelPos1 = wtSeq.find(c[:xx]) + xx
+        elif "-" in d: # indel
+            xx = d.find("-")
+            indelPos1 = wtSeq.find(c[:xx]) + xx
+        else:
+            indelPos1 = -1
+        algnList1.append((c,d))
+        # r2
+        e, f = local_align(wtSeq, r2, ScoreParam(3, -4, -5))
+        if "-" in e: # indel
+            xx = e.find("-")
+            indelPos2 = wtSeq.find(e[:xx]) + xx
+        elif "-" in f: # indel
+            xx = f.find("-")
+            indelPos2 = wtSeq.find(e[:xx]) + xx
+        else:
+            indelPos2 = -1
+        indelPosList.append((indelPos1, indelPos2))
+        algnList2.append((e,f))
 
-    return [nreads, seqList, algnList, algnList2, countList, indelPosList, indexList]
+    return [nreads, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList]
 
 
 
@@ -174,12 +176,12 @@ def main():
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
     prefix = sys.argv[3]
-    nread, seqList, algnList, algnList2, countList, indelPosList, indexList = checkFastq(prefix, ref_seq)
-    print("Total reads is ", nread)
+    nreads, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList = checkFastq(prefix, ref_seq)
+    print("Total reads is ", nreads)
     print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
-    print("PE reads\talignment between R1 and R2\talignment between WT and R1, WT and R2, or WT and merged\tNumber of reads\tIndel position in R1 and R2")
+    print("PE reads\talignment between R1 and R2\talignment between WT and R1\talignment between WT and R2\tNumber of reads\tIndel position in R1 and R2")
     for i in range(len(algnList2)):
-        print(seqList[indexList[i]], algnList[i], algnList2[i], countList[indexList[i]], indelPosList[i], sep='\t')
+        print(seqList[indexList[i]], algnList[i], algnList1[i], algnList2[i], countList[indexList[i]], indelPosList[i], sep='\t')
 
 if __name__ == "__main__":
     main()
