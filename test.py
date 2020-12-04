@@ -72,6 +72,11 @@ def checkSNP(seq1,seq2):
             if seq1[i] != seq2[i]:
                 ndiff += 1
         return ndiff
+# get indel length based on alignment
+def indelLen(a, b): #a is WT, b is edited alignment
+    c = a.replace("-", "")
+    d = b.replace("-", "")
+    return len(d) - len(c) # - is deletion
 
 # check PE fastq
 def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited template 
@@ -119,6 +124,8 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     algnList1 = [] # alignment of wt and r1
     algnList2 = [] # alignment of wt and r2
     indexList = [] # list of index in seqList used
+    indel1 = [] # indel length for R1
+    indel2 = [] # indel length for R2
     for i in range(len(seqList)):
         if countList[i] * 100 / nreads < 5:
             break # seqList is sorted
@@ -158,6 +165,7 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
         else:
             indelPos1 = -1
         algnList1.append((c,d))
+        indel1.append(indelLen(c,d))
         # r2
         e, f = local_align(wtSeq, r2, ScoreParam(3, -4, -5))
         if "-" in e: # indel
@@ -170,8 +178,9 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
             indelPos2 = -1
         indelPosList.append((indelPos1, indelPos2))
         algnList2.append((e,f))
+        indel2.append(indelLen(e,f))
 
-    return [nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList]
+    return [nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2]
 
 
 
@@ -181,14 +190,14 @@ def main():
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
     prefix = sys.argv[3]
-    nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList = checkFastq(prefix, ref_seq)
+    nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(prefix, ref_seq)
     print("Total reads is ", nreads)
     print("Reads on target are ", nread2)
     print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
     print("PCR amplicon length is ", len(ref_seq))
-    print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\talignment between WT and R2\talignment length between WT and R2\tNumber of reads\tIndel position in R1 and R2")
+    print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tNumber of reads\t%reads\tIndel position in R1 and R2")
     for i in range(len(algnList2)):
-        print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), algnList2[i], len(algnList2[i][0]), countList[indexList[i]], indelPosList[i], sep='\t')
+        print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], algnList2[i], len(algnList2[i][0]), indel2[i], countList[indexList[i]], countList[indexList[i]]*100/nread2, indelPosList[i], sep='\t')
 
 if __name__ == "__main__":
     main()
