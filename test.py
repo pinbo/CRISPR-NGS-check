@@ -119,8 +119,8 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     nread2 = 0 # reads for on target amplicons
     for i in range(len(seqList)):
         nread2 += countList[i]
-        # if countList[i] * 100 / nreads < 5:
-        #     break # seqList is sorted
+        if countList[i] * 100 / nreads < 5:
+            break # seqList is sorted
         (r1, r2) = seqList[i]
         # if leftseq not in r1 or rightseq not in r2:
         #     continue
