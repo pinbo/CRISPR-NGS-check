@@ -197,9 +197,9 @@ def main():
         nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, ref_seq)
         print("Total reads is", nreads, "; Reads on target are", nread2)
         # print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
-        print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tNumber of reads\t%reads\tIndel position in R1 and R2")
+        print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\tR1 indel position\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tR2 indel position\tNumber of reads\t%reads")
         for i in range(len(algnList2)):
-            print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], algnList2[i], len(algnList2[i][0]), indel2[i], countList[indexList[i]], countList[indexList[i]]*100/nread2, indelPosList[i], sep='\t')
+            print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], indelPosList[i][0], algnList2[i], len(algnList2[i][0]), indel2[i], indelPosList[i][1], countList[indexList[i]], countList[indexList[i]]*100/nread2, sep='\t')
 
 if __name__ == "__main__":
     main()
