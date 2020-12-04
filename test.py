@@ -79,12 +79,12 @@ def indelLen(a, b): #a is WT, b is edited alignment
     return len(d) - len(c) # - is deletion
 
 # check PE fastq
-def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited template 
+def checkFastq(file1,file2, wtSeq): # wtSeq is the PCR amplicon of the unedited template 
     leftseq = wtSeq[15:30]
     rightseq = wtSeq[-30:-15]
-    file1= glob.glob(prefix + "*R1*")[0]
-    file2 = glob.glob(prefix + "*R2*")[0]
-    print("files are ", file1, file2)
+    # file1= glob.glob(prefix + "*R1*")[0]
+    # file2 = glob.glob(prefix + "*R2*")[0]
+    print("\nfiles are", file1, file2)
     if file1[-2:] == "gz":
         with gzip.open(file1, mode='rt') as f1:
             with gzip.open(file2, mode='rt') as f2:
@@ -189,15 +189,17 @@ def main():
     ref_lib = get_fasta(os.path.abspath(sys.argv[1]))
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
-    prefix = sys.argv[3]
-    nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(prefix, ref_seq)
-    print("Total reads is ", nreads)
-    print("Reads on target are ", nread2)
-    print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
     print("PCR amplicon length is ", len(ref_seq))
-    print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tNumber of reads\t%reads\tIndel position in R1 and R2")
-    for i in range(len(algnList2)):
-        print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], algnList2[i], len(algnList2[i][0]), indel2[i], countList[indexList[i]], countList[indexList[i]]*100/nread2, indelPosList[i], sep='\t')
+    # prefix = sys.argv[3]
+    R1files = glob.glob("*R1_001.fastq*") # change here if your file names are different
+    for file1 in R1files:
+        file2 = file1.replace("R1", "R2")
+        nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, ref_seq)
+        print("Total reads is", nreads, "; Reads on target are", nread2)
+        # print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
+        print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tNumber of reads\t%reads\tIndel position in R1 and R2")
+        for i in range(len(algnList2)):
+            print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], algnList2[i], len(algnList2[i][0]), indel2[i], countList[indexList[i]], countList[indexList[i]]*100/nread2, indelPosList[i], sep='\t')
 
 if __name__ == "__main__":
     main()
