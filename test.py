@@ -4,7 +4,7 @@
 import os
 import glob
 import sys
-#import csv
+import gzip
 from local_align import local_align, ScoreParam
 
 # added by Junli Zhang on 11/30/2019
@@ -86,7 +86,6 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     file2 = glob.glob(prefix + "*R2*")[0]
     print("files are ", file1, file2)
     if file1[-2:] == "gz":
-        import gzip
         with gzip.open(file1, mode='rt') as f1:
             with gzip.open(file2, mode='rt') as f2:
                 R1R2, nreads = interleave(f1, f2)
@@ -118,6 +117,7 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
         else:
             seqList.append(k)
             countList.append(R1R2[k])
+            nread2 += R1R2[k]
     # now check the indels
     indelPosList = []
     algnList = [] # alignment of r1 and r2
