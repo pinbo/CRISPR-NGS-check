@@ -40,11 +40,11 @@ def interleave(f1, f2):
     out = {}  # a dict of reads count
     n = 0 # number of reads
     while True:
-        n += 1
         line = f1.readline()
         if line.strip() == "":
             break
         # print line.strip()
+        n += 1
         for i in range(3):
             read = f1.readline().strip()
             if i == 0:
@@ -92,6 +92,7 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     # check the 
     seqList = []
     countList = []
+    nread2 = 0 # reads for on target amplicons
     for k in sorted(R1R2, key=R1R2.get, reverse=True):
         (R1, R2) = k
         if leftseq not in R1 or rightseq not in R2:
@@ -101,12 +102,14 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
             for i in range(len(seqList)):
                 (r1, r2) = seqList[i]
                 if checkSNP(r1, R1) < 3 and checkSNP(r2, R2) < 3: # less than 3 SNPs, treat as the same
-                    countList[i] += 1
+                    countList[i] += R1R2[k]
+                    nread2 += R1R2[k]
                     new = 0
                     break
             if new:
                 seqList.append(k)
                 countList.append(R1R2[k])
+                nread2 += R1R2[k]
         else:
             seqList.append(k)
             countList.append(R1R2[k])
@@ -116,9 +119,7 @@ def checkFastq(prefix, wtSeq): # wtSeq is the PCR amplicon of the unedited templ
     algnList1 = [] # alignment of wt and r1
     algnList2 = [] # alignment of wt and r2
     indexList = [] # list of index in seqList used
-    nread2 = 0 # reads for on target amplicons
     for i in range(len(seqList)):
-        nread2 += countList[i]
         if countList[i] * 100 / nreads < 5:
             break # seqList is sorted
         (r1, r2) = seqList[i]
