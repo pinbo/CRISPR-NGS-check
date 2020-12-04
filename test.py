@@ -79,9 +79,9 @@ def indelLen(a, b): #a is WT, b is edited alignment
     return len(d) - len(c) # - is deletion
 
 # check PE fastq
-def checkFastq(file1,file2, wtSeq): # wtSeq is the PCR amplicon of the unedited template 
-    leftseq = wtSeq[15:30]
-    rightseq = wtSeq[-30:-15]
+def checkFastq(file1,file2, wtSeq, specificSeq): # wtSeq is the PCR amplicon of the unedited template 
+    # leftseq = wtSeq[15:30]
+    # rightseq = wtSeq[-30:-15]
     # file1= glob.glob(prefix + "*R1*")[0]
     # file2 = glob.glob(prefix + "*R2*")[0]
     print("\nfiles are", file1, file2)
@@ -99,7 +99,7 @@ def checkFastq(file1,file2, wtSeq): # wtSeq is the PCR amplicon of the unedited 
     nread2 = 0 # reads for on target amplicons
     for k in sorted(R1R2, key=R1R2.get, reverse=True):
         (R1, R2) = k
-        if leftseq not in R1 or rightseq not in R2:
+        if specificSeq not in R1 and specificSeq not in R2:
             continue
         if seqList:
             new = 1
@@ -189,12 +189,17 @@ def main():
     ref_lib = get_fasta(os.path.abspath(sys.argv[1]))
     ID = sys.argv[2]
     ref_seq = ref_lib[ID].upper()
+    primerF = sys.argv[3]
+    primerR = sys.argv[4]
+    amplicon = ref_seq[ref_seq.find(primerF):(ref_seq.find(primerR)+len(primerR))]
+    specificSeq = sys.argv[5]
     print("PCR amplicon length is ", len(ref_seq))
     # prefix = sys.argv[3]
-    R1files = glob.glob("*R1_001.fastq*") # change here if your file names are different
+    fastqFolder = sys.argv[6]
+    R1files = glob.glob(fastqFolder + "/*R1_001.fastq*") # change here if your file names are different
     for file1 in R1files:
         file2 = file1.replace("R1", "R2")
-        nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, ref_seq)
+        nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, amplicon, specificSeq)
         print("Total reads is", nreads, "; Reads on target are", nread2)
         # print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
         print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\tR1 indel position\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tR2 indel position\tNumber of reads\t%reads")
