@@ -128,58 +128,59 @@ def checkFastq(file1,file2, wtSeq, specificSeq): # wtSeq is the PCR amplicon of 
     indel2 = [] # indel length for R2
     for i in range(len(seqList)):
         # if countList[i] * 100 / nread2 < 5:
-        if i > 9: # top 10
-            break # seqList is sorted
-        (r1, r2) = seqList[i]
-        # if leftseq not in r1 or rightseq not in r2:
-        #     continue
-        # add i to index list
-        indexList.append(i)
-        # check whether there is overlap between R1 and R2
-        a, b = local_align(r1, r2, ScoreParam(3, -4, -5))
-        algnList.append((a,b))
-        # if a and ("-" not in a and "-" not in b): # overlap
-        #     # print(i, a)
-        #     p1 = r1.find(a)
-        #     p2 = r2.find(b)
-        #     merged = r1[0:p1] + r2[(p2+len(b)):]
-        #     c, d = local_align(wtSeq, merged, ScoreParam(3, -4, -5))
-        #     if "-" in c: # indel
-        #         xx = c.find("-")
-        #         indelPos = wtSeq.find(c[:xx]) + xx
-        #     elif "-" in d: # indel
-        #         xx = d.find("-")
-        #         indelPos = wtSeq.find(c[:xx]) + xx
-        #     else:
-        #         indelPos = -1
-        #     indelPosList.append(indelPos)
-        #     algnList2.append((c,d))
-        # else: # no overlap, need to check r1 and r2 separately
-        # r1 first
-        c, d = local_align(wtSeq, r1, ScoreParam(3, -4, -5))
-        if "-" in c: # indel
-            xx = c.find("-")
-            indelPos1 = wtSeq.find(c[:xx]) + xx
-        elif "-" in d: # indel
-            xx = d.find("-")
-            indelPos1 = wtSeq.find(c[:xx]) + xx
-        else:
-            indelPos1 = -1
-        algnList1.append((c,d))
-        indel1.append(indelLen(c,d))
-        # r2
-        e, f = local_align(wtSeq, r2, ScoreParam(3, -4, -5))
-        if "-" in e: # indel
-            xx = e.find("-")
-            indelPos2 = wtSeq.find(e[:xx]) + xx
-        elif "-" in f: # indel
-            xx = f.find("-")
-            indelPos2 = wtSeq.find(e[:xx]) + xx
-        else:
-            indelPos2 = -1
-        indelPosList.append((indelPos1, indelPos2))
-        algnList2.append((e,f))
-        indel2.append(indelLen(e,f))
+        # if i > 9: # top 10
+            # break # seqList is sorted
+        if countList[i] > 1: # skip reads with only 1 instance
+            (r1, r2) = seqList[i]
+            # if leftseq not in r1 or rightseq not in r2:
+            #     continue
+            # add i to index list
+            indexList.append(i)
+            # check whether there is overlap between R1 and R2
+            a, b = local_align(r1, r2, ScoreParam(3, -4, -5))
+            algnList.append((a,b))
+            # if a and ("-" not in a and "-" not in b): # overlap
+            #     # print(i, a)
+            #     p1 = r1.find(a)
+            #     p2 = r2.find(b)
+            #     merged = r1[0:p1] + r2[(p2+len(b)):]
+            #     c, d = local_align(wtSeq, merged, ScoreParam(3, -4, -5))
+            #     if "-" in c: # indel
+            #         xx = c.find("-")
+            #         indelPos = wtSeq.find(c[:xx]) + xx
+            #     elif "-" in d: # indel
+            #         xx = d.find("-")
+            #         indelPos = wtSeq.find(c[:xx]) + xx
+            #     else:
+            #         indelPos = -1
+            #     indelPosList.append(indelPos)
+            #     algnList2.append((c,d))
+            # else: # no overlap, need to check r1 and r2 separately
+            # r1 first
+            c, d = local_align(wtSeq, r1, ScoreParam(3, -4, -5))
+            if "-" in c: # indel
+                xx = c.find("-")
+                indelPos1 = wtSeq.find(c[:xx]) + xx
+            elif "-" in d: # indel
+                xx = d.find("-")
+                indelPos1 = wtSeq.find(c[:xx]) + xx
+            else:
+                indelPos1 = -1
+            algnList1.append((c,d))
+            indel1.append(indelLen(c,d))
+            # r2
+            e, f = local_align(wtSeq, r2, ScoreParam(3, -4, -5))
+            if "-" in e: # indel
+                xx = e.find("-")
+                indelPos2 = wtSeq.find(e[:xx]) + xx
+            elif "-" in f: # indel
+                xx = f.find("-")
+                indelPos2 = wtSeq.find(e[:xx]) + xx
+            else:
+                indelPos2 = -1
+            indelPosList.append((indelPos1, indelPos2))
+            algnList2.append((e,f))
+            indel2.append(indelLen(e,f))
 
     return [nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2]
 
