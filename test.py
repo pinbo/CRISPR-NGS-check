@@ -127,7 +127,7 @@ def checkFastq(file1,file2, wtSeq, specificSeq): # wtSeq is the PCR amplicon of 
     indel1 = [] # indel length for R1
     indel2 = [] # indel length for R2
     for i in range(len(seqList)):
-        if countList[i] * 100 / nreads < 5:
+        if countList[i] * 100 / nread2 < 5:
             break # seqList is sorted
         (r1, r2) = seqList[i]
         # if leftseq not in r1 or rightseq not in r2:
@@ -193,7 +193,8 @@ def main():
     primerR = sys.argv[4]
     amplicon = ref_seq[ref_seq.find(primerF):(ref_seq.find(primerR)+len(primerR))]
     specificSeq = sys.argv[5]
-    print("PCR amplicon length is ", len(ref_seq))
+    print("PCR amplicon length is ", len(amplicon))
+    print(amplicon)
     # prefix = sys.argv[3]
     fastqFolder = sys.argv[6]
     R1files = glob.glob(fastqFolder + "/*R1_001.fastq*") # change here if your file names are different
@@ -201,7 +202,7 @@ def main():
         file2 = file1.replace("R1", "R2")
         nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, amplicon, specificSeq)
         print("Total reads is", nreads, "; Reads on target are", nread2)
-        # print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
+        print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
         print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\tR1 indel position\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tR2 indel position\tNumber of reads\t%reads")
         for i in range(len(algnList2)):
             print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], indelPosList[i][0], algnList2[i], len(algnList2[i][0]), indel2[i], indelPosList[i][1], countList[indexList[i]], countList[indexList[i]]*100/nread2, sep='\t')
