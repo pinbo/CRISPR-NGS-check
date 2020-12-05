@@ -127,7 +127,8 @@ def checkFastq(file1,file2, wtSeq, specificSeq): # wtSeq is the PCR amplicon of 
     indel1 = [] # indel length for R1
     indel2 = [] # indel length for R2
     for i in range(len(seqList)):
-        if countList[i] * 100 / nread2 < 5:
+        # if countList[i] * 100 / nread2 < 5:
+        if i > 9: # top 10
             break # seqList is sorted
         (r1, r2) = seqList[i]
         # if leftseq not in r1 or rightseq not in r2:
