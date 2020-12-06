@@ -101,23 +101,24 @@ def checkFastq(file1,file2, wtSeq, specificSeq): # wtSeq is the PCR amplicon of 
         (R1, R2) = k
         if specificSeq not in R1 and specificSeq not in R2:
             continue
+        nread2 += R1R2[k]
         if seqList:
             new = 1
             for i in range(len(seqList)):
                 (r1, r2) = seqList[i]
                 if checkSNP(r1, R1) < 3 and checkSNP(r2, R2) < 3: # less than 3 SNPs, treat as the same
                     countList[i] += R1R2[k]
-                    nread2 += R1R2[k]
+                    # nread2 += R1R2[k]
                     new = 0
                     break
             if new:
                 seqList.append(k)
                 countList.append(R1R2[k])
-                nread2 += R1R2[k]
+                # nread2 += R1R2[k]
         else:
             seqList.append(k)
             countList.append(R1R2[k])
-            nread2 += R1R2[k]
+            # nread2 += R1R2[k]
     # now check the indels
     indelPosList = []
     algnList = [] # alignment of r1 and r2
@@ -205,7 +206,7 @@ def main():
         nreads, nread2, seqList, algnList, algnList1, algnList2, countList, indelPosList, indexList, indel1, indel2 = checkFastq(file1, file2, amplicon, specificSeq)
         print("Total reads is", nreads, "; Reads on target are", nread2)
         print("Length of index, algnList, algnList2, seqList, countList, indelPosList", len(indexList), len(algnList), len(algnList2), len(seqList), len(countList), len(indelPosList))
-        print("PE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\tR1 indel position\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tR2 indel position\tNumber of reads\t%reads")
+        print("\nPE reads\talignment between R1 and R2\talignment length between R1 and R2\talignment between WT and R1\talignment length between WT and R1\tR1 indel size\tR1 indel position\talignment between WT and R2\talignment length between WT and R2\tR2 indel size\tR2 indel position\tNumber of reads\t%reads")
         for i in range(len(algnList2)):
             print(seqList[indexList[i]], algnList[i], 0 if "-" in algnList[i][0] else len(algnList[i][0]), algnList1[i], len(algnList1[i][0]), indel1[i], indelPosList[i][0], algnList2[i], len(algnList2[i][0]), indel2[i], indelPosList[i][1], countList[indexList[i]], countList[indexList[i]]*100/nread2, sep='\t')
 
